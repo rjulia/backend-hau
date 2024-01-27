@@ -9,4 +9,6 @@
 # testing
 /coverage
 
+.env
+
 

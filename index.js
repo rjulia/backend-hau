@@ -23,7 +23,7 @@ mongoose.connect(process.env.MONGODB_URI)
 
 app.use('/api/users', users);
 app.use('/api/characters', characters);
-app.use('/api/fav', fav);
+app.use('/api/fav',auth, fav);
 
 
 const port = process.env.PORT || 8000;

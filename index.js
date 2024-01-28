@@ -1,23 +1,22 @@
 require('dotenv').config();
-const config = require('config');
-const bodyParser = require('body-parser');
-const morgan = require('morgan');
-// const Joi = require('joi');
-// Joi.objectId = require('joi-objectid')(Joi);
 const mongoose = require('mongoose');
+const cors = require("cors") 
+const express = require('express');
+const auth = require('./middleware/auth');
 const users = require('./routes/users');
 const characters = require('./routes/characters');
-const express = require('express');
+
 const app = express();
-app.use(morgan('dev'));
 app.use(express.json());
+app.use(cors({
+  origin: "http://localhost:3000",
 
-// if (!config.get('jwtPrivateKey')) {
-//   console.error('FATAL ERROR: jwtPrivateKey is not defined.');
-//   process.exit(1);
-// }
+  methods: ["GET", "POST"],
+}))
 
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+
+
+mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.log(err));
 
@@ -25,5 +24,10 @@ app.use('/api/users', users);
 app.use('/api/characters', characters);
 
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8000;
 app.listen(port, () => console.log(`Listening on port ${port}...`));
+
+process.on("unhandledRejection", err => {
+  console.log(`An error occurred: ${err.message}`)
+  server.close(() => process.exit(1))
+})

@@ -1,32 +1,81 @@
-const auth = require('../middleware/auth');
 const jwt = require('jsonwebtoken');
-const config = require('config');
 const bcrypt = require('bcrypt');
-const _ = require('lodash');
-const {User, validate} = require('../models/user');
-const mongoose = require('mongoose');
+const {User} = require('../models/user');
 const express = require('express');
 const router = express.Router();
 
-router.get('/me', auth, async (req, res) => {
-  const user = await User.findById(req.user._id).select('-password');
-  res.send(user);
+
+// login user
+router.post("/login", async (req, res) => {
+
+   try {
+    const { email, password } = req.body;
+
+    if (!(email && password)) {
+      res.status(400).send("All input is required");
+    }
+    const user = await User.findOne({ email });
+
+    if (user && (await bcrypt.compare(password, user.password))) {
+      // Create token
+      const token = jwt.sign(
+        { user_id: user._id, email },
+        process.env.TOKEN_KEY,
+        {
+          expiresIn: "5h",
+        }
+      );
+
+      // save user token
+      user.token = token;
+
+      // user
+      return res.status(200).json(user);
+    }
+    return res.status(400).send("Invalid Credentials");
+  } catch (err) {
+    console.log(err);
+  }
+
 });
 
-router.post('/', async (req, res) => {
-  const { error } = validate(req.body); 
-  if (error) return res.status(400).send(error.details[0].message);
+// register user
+router.post("/register", async (req, res) => {
 
-  let user = await User.findOne({ email: req.body.email });
-  if (user) return res.status(400).send('User already registered.');
+   try {
+    const { email, password } = req.body;
 
-  user = new User(_.pick(req.body, ['name', 'email', 'password']));
-  const salt = await bcrypt.genSalt(10);
-  user.password = await bcrypt.hash(user.password, salt);
-  await user.save();
+    if (!(email && password)) {
+      res.status(400).send("All input is required");
+    }
 
-  const token = user.generateAuthToken();
-  res.header('x-auth-token', token).send(_.pick(user, ['_id', 'name', 'email']));
+    const userExits = await User.findOne({ email });
+
+    if (userExits) {
+      return res.status(409).send("User Already Exist. Please Login");
+    }
+
+    encryptedPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+      email: email.toLowerCase(), // sanitize
+      password: encryptedPassword,
+    });
+
+    const token = jwt.sign(
+      { user_id: user._id, email },
+        process.env.TOKEN_KEY,
+      {
+        expiresIn: "5h",
+      }
+    );
+    user.token = token;
+
+    res.status(201).json(user);
+  } catch (err) {
+    console.log(err);
+  }
+
 });
 
 module.exports = router; 

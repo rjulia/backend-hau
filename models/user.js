@@ -16,7 +16,11 @@ const userSchema = new mongoose.Schema({
   },
   token: {
     type: String,
-  }
+  },
+  favorites: [{ 
+    type: Number, 
+
+  }]
 });
 
 

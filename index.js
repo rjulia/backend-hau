@@ -19,10 +19,10 @@ app.use(cors({
 
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('MongoDB connected'))
-  .catch(err => console.log(err));
+  .catch(err => console.error(err));
 
 app.use('/api/users', users);
-app.use('/api/characters', characters);
+app.use('/api/characters', auth, characters);
 app.use('/api/fav',auth, fav);
 
 
@@ -30,6 +30,6 @@ const port = process.env.PORT || 8000;
 app.listen(port, () => console.log(`Listening on port ${port}...`));
 
 process.on("unhandledRejection", err => {
-  console.log(`An error occurred: ${err.message}`)
+  console.error(`An error occurred: ${err.message}`)
   server.close(() => process.exit(1))
 })

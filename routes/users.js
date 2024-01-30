@@ -34,7 +34,7 @@ router.post("/login", async (req, res) => {
     }
     return res.status(400).send("Invalid Credentials");
   } catch (err) {
-    console.log(err);
+    console.error(err);
   }
 
 });
@@ -73,7 +73,7 @@ router.post("/register", async (req, res) => {
 
     res.status(201).json(user);
   } catch (err) {
-    console.log(err);
+    console.error(err);
   }
 
 });
